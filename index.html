@@ -246,6 +246,10 @@ The output of the streaming interface is then connected to the read FIFO (becaus
    <img src="pics/corr_design.png" alt="Diagram of the correlation module" width = 700>
    <center><figcaption> Correlation module flow diagram </figcaption></center>
 </figure>
+	<h3> Xillybus and HPS Communication </h3>
+	  <p> To communicate with the HPS, we use the Xillybus. The bus acts as a FIFO streaming interface between the HPS and the FPGA. On the FPGA side, we simply instantiate the Xillybus IP and connect its inputs and outputs to two FIFOS. The write FIFO receives data from the HPS (termed as such because the HPS writes to it) and the read FIFO sends data to the HPS. Because the bus width is 32 bits wide and each packet of data from the HPS to the FPGA needs 36 bits (10 bits for X, 10 bits for Y, 8 bits for left image pixel, and 8 bits for right image pixel), we had to serialize the data on the HPS and deserialize it on the FPGA. Therefore, the read port of the write FIFO is connected to a deserialize module that connects to the stereo vision pipeline with our standard streaming interface. 
+		The data output from the stereo pipeline can fit into 32 bits (10 bits for X, 10 bits for Y, and 8 bits for depth data) and does not need to be serialized before sent back. 
+	  </p>
  <h2> Things that did not work </h2>
 <p> 
  We initially tried to stream stereo images from a camera module. This was met with several obstacles, ranging from noisy images to rectification and alignment.</p>
@@ -274,15 +278,11 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
    <img src="pics/dwarves.png" alt="Output of our Accelerator" width = 700>
    <center><figcaption> Flow diagram of our project</figcaption></center>
 </figure>
-<p>Here is the output of our system compared to the ideal output:</p>
+<p>Here is the output of our system compared to the ideal output. It is clear that while our output is not ideal, we are able to identify the major elements of the ideal output. </p>
   <figure>
    <img src="pics/exp_dolls.png" style = "float:left" alt="Output of our Accelerator" width = 300>
    <img src="pics/ideal_dolls.png"  style = "float:right" alt="Output of our Accelerator" width = 300>
-   
    </figure>
-   <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
-   <p> It is clear that while our output is not ideal, we are able to identify the major elements of the ideal output. </p>
-
   <br/>
 <h3> Safety</h3>
 <p> We made sure our project was safe by careful layout and testing. We made sure that we took breaks every couple of hours to avoid muscle fatigue. We also followed strict ESD protocols to avoid frying an FPGA.</p>
@@ -302,7 +302,7 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
     <h4>Ethical Considerations</h4>
    We believe our project followed the 
     <h4>IP Considerations</h4>
-  <p> We used the Altera IP for shift registers, FIFO, and dual clock RAM. We used the Xillybus IP as an evaluation. </p>
+  <p> We used the Altera IP for shift registers, FIFO, and dual clock RAM. We used the Xillybus IP as an evaluation basis. Additionally, the MATLAB code used to initially design, test, and verify our stereo vision algorithms were based the code <a href="http://ai.stanford.edu/~mitul/cs223b/dp.html">here</a></p>
     
   </div> <!-- conclusion -->
 
@@ -316,14 +316,15 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
     <p>
     Our source verilog, MATLAB, and python scripts used to develop the FPGA architecture are available on Github <a href="https://github.coecis.cornell.edu/rk534/stereo-cam-src">here</a>.<br/>
     Our source C++ and .launch files for ROS are available on Github <a href="https://github.coecis.cornell.edu/rk534/stereo_cam_node">here</a>.
+	Simply clone both repos into the same directory and run the Xilly Project. 
     </p>
     
   
     <h3>B. Distribution of work:</h3>
 	<ul>
-	<li>Jay worked on designing and manufacturing the camera mounting systems as well as interfacing with the cameras. When that was unsuccessful, he pivoted to assisting with the ROS implementation. He also was responsible for compiling the report.</li>
-	<li>Raghava worked on the ROS implementation, the convolution module as well as the overall algorithm design.</li>
-	<li>Tian worked on the the census transformation as well as everything verilog.</li>
+	<li>Jay worked on designing and manufacturing the camera mounting systems as well as interfacing with the cameras. When that was unsuccessful, he pivoted to assisting with the ROS implementation.</li>
+	<li>Raghava worked on the ROS implementation, the convolution module as well as the overall FPGA architecture design.</li>
+	<li>Tian worked on the algorithm design, evaluation, and verification, FPGA architecture design, and the correlation module.</li>
 	</ul>
 
 	<h3>C. References:</h3>
