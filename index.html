@@ -100,12 +100,15 @@ Since ROS is one of the most popular modelling software for robotics and automat
      </p>
     <h3>Background Math</h3>
    <p>The stereo algorithm works by combining the filtering and processing algorithms listed below into a single pipeline.<br/></p>
-<h4>Convolutional Filter -</h4> <br/>
+<h4>Convolutional Filter -</h4>
 <p>The input images first go through a convolutional filter. 
 While our convolution module can use any kernel of any size, we chose to implement a 3x3 Gaussian blur filter due to its simplicity and good results.
  This helped to reduce any random noise in the images while preserving the edge structures which is needed for a reliable census transform (discussed in ii). 
  We also tested an averaging filter and bilateral filter in MATLAB. In comparison, the simple averaging filter gave worse results due to poor noise filtering and the bilateral filter gave slightly better results due to its ability to preserve sharper edges. The time we would have to spend on developing the bilateral filter did not justify its minor benefits for our project, so we chose to use the Gaussian blur filter. In our Verilog design, the convolutional filter expects an 8-bit unsigned number for the image pixel input and a 4.4 signed fixed point decimal for the kernel input (this gave a range of -8 to 7.9375 for the kernel values with a precision of 0.0625). The output of the filter is strictly an 8-bit unsigned value. If the convolution at a certain location produces a negative value, that value is clipped to 0. 
 The Gaussian blur filter uses the following kernel weights:</p>
+<figure>
+   <img src="pics/convolvekernel.svg" alt="Flow of our Algorithm" width = 700>
+   </figure>
 <!--[convolvekernel.svg]-->
 <h4>Sparse Census Transform -</h4> 
 	<p>
@@ -118,11 +121,17 @@ The Gaussian blur filter uses the following kernel weights:</p>
 	 The transform is performed on a 5x5 window of pixels and the output is represented as a bit vector. 
 	 The * represents pixels that we do not care about because we only perform the comparisons on the outer pixels. The center pixel is discarded because the output is always 0. 
  </p>
+ <figure>
+   <img src="pics/census.svg" alt="Census" width = 700>
+   </figure>
 <!--[census.svg]-->
 <h4>Census Windowing - </h4>
 <p>As a method to improve the output quality and also be more robust to noise, we perform a 3x3 windowing the on the census output. 
 The module simply concatenates the nine 8-bit vectors inside the window into a single 72-bit vector. The following diagram shows the process on a 2x2 window. </p>
 <!--[censuswnd.svg]-->
+ <figure>
+   <img src="pics/censuswnd.svg" alt="Census Window" width = 700>
+   </figure>
 <h4>Correlation - </h4>
 <p>The correlation step take the windows census bit vectors from the left and right images and compares them to generate a disparity map. 
 Our design can generate a depth map with 64 levels, so for each census vector in the right image, we compare it with 64 census vectors in the left image to find the level with the lowest difference between the two bit vectors. 
@@ -131,20 +140,60 @@ If the XOR output for a certain bit is 1, then that means the bits are different
 We then perform a tree comparison of the 64 disparity values to find the lowest disparity value. The index of of that value is the corresponding depth of that pixel in the original image. 
 An index of 0 means that the object is infinitely far away and an index of 1 means that the object is very close. The following diagram shows the correlation process:</p>
 <!--[correlate.svg]-->
-
+<figure>
+   <img src="pics/correlate.svg" alt="Correlate" width = 700>
+   </figure>
+<h3> Logical Flow</h3>
+<p>Our project had the following logical flow:</p>
+<figure>
+   <img src="pics/Full_Flow_Diagram.png" alt="Flow of our Algorithm" width = 700>
+   <center><figcaption> Flow diagram of our project</figcaption></center>
+</figure>
+<h3> Relationship to IEEE, ISO, ANSI, DIN, or other standards</h3>
+	Our project relied on using the VGA standard for
         
   <div class="linklist" title=""> <a name="design"></a>
-    <h2>Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-    <!-- PUT THINGS TRIED BUT DID NOT WORK -->
-    <h5>Hardware Design</h5>
+    <h2>Hardware Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	<h3> Robot Operating System: ROS </h3>
+	<p>
+	To get ROS running on the DE1-SoC, we first installed Xillinux on the HPS. 
+	Xillinux is a custom linux distribution based on Ubuntu 12.04 LTS for ARM. 
+	It is provided for free by Xillybus, and works out of the box on the Altera SoCKit board. 
+	To get this running on our board (DE1-SoC), we had to make a few modifications in the Quartus project, generate a .rbf (Raw Binary File) in Quartus, and add this to the SD card image. 
+	Mohammad, who had worked with Xillybus before, helped us with this process. 
+	The template project he provided enabled us to get the system up and running quickly, so we could focus on integrating our system with the Xillybus.
+</p>
+   
+     <h2>Software Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+   
+  <h2>Performance:</h5>
+  <h3> Things that did not work </h3>
+<p> 
+ We initially tried to stream stereo images from a camera module. This was met with several obstacles, ranging from noisy images to rectification and alignment.</p>
+<p>We decided to use an Arducam camera due to its theoretical simplicity ability to output raw RGB. 
+Our initial camera selection, OV7670 (TODO: link and image here), had to much static noise to be off any use. 
+This noise presented itself by having noticeable flickering screen no matter the lighting conditions. 
+This kind of noise would have required a much more complicated memory interface to fix. We did a quick test with another Arducam, the MT9D111 module and noticed that there was much less flicker and decided to purchase a set of those.</p>
+<p>The mounting system was already designed and manufactured for the OV7670 and needed to be redone for the MT9D111 since the mounting was non-compatible with the previous modules. </p>
+    <img src="pics/Render.png">
+<p>Another issue with the MT9D111 was the difficulty of interpreting the datasheet and configuring the camera. 
+The camera was configured over i2c, which we used via smbus module on the Linux side of the FPGA. 
+We were able to debug the smbus module and eventually figured out how to configure the camera to the correct size. 
+However, the difficulty of alignment and more advanced configuration, made these cameras undesirable. 
+Additionally, the nature of our streaming algorithm requires the left and right pixels of the same coordinate to be received at the same time. 
+There cannot be any offsets in the coordinates of the left and right pixels. 
+Because we were unable to force the MT9D111 to lock to a fixed frame rate and be synchronized to each other (at least close enough such that we can use SRAM buffers on the FPGA to correct for minor out of sync issues), we decided not to use these cameras. 
+The solution to fix this will be either to use a FPGA with a large enough SRAM to store the full frames for both cameras, or use the SDRAM as a frame buffer for both cameras.</p>
+<p>In parallel to Arducam development, a camera with a stereo lens was lent to us by Bruce. This camera outputted a combined image from both lenses. This was not the ideal output since we wanted to have two distinct images, so after some experimenting, we determined how we could configure the camera to taking regular pictures with the stereo lense. This resulted in an single image which was split down the middle with the image through one lense on either side. We purchased a usb-ntsc cable and were able to get the camera to stream those images to the FPGA over ntsc. We then applied cropping functions on the input and separated the single image stream into two distinct streams. We then ran those images through our algorithms. We had hoped that this would result in a rectified image input to our modules, but the output of this was extremely noisy. </p>
+<p>We decided that due to our time constraints, to move to a system that accepted rectified images and expand on the ROS portion of the project.</p>
 
+<h3> Safety</h3>
+<p> We made sure our project was safe by careful layout and testing. We made sure that we took breaks every couple of hours to avoid muscle fatigue. We also followed strict ESD protocols to avoid frying an FPGA.</p>
+<h3> Usability</h3>
+<p> This project is developed to be a plug in ROS node so it is easily usable by any ROS system. This makes our project extremely easy to integrate into any ROS system that already has a module outputting rectified images.</p>
+<div class="linklist" title=""> <a name="conclusions"></a>
    
-    <h5>Software Design</h5>
-   
-  <h5>Performance:</h5>
-  
-  <div class="linklist" title=""> <a name="conclusions"></a>
-    <h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	<h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
    
     
     
@@ -158,11 +207,16 @@ An index of 0 means that the object is infinitely far away and an index of 1 mea
 
   <div class="linklist" title=""> <a name="appendices"></a>
     <h2>Appendices &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	<p> The group approves this report for inclusion on the course website.<br/>
+The group approves the video for inclusion on the course youtube channel.
+</p>
     <h3>A. Code Listing</h3>
     
   
     <h3>B. Distribution of work:</h3>
-     
+     <p> Jay worked on designing and manufacturing the camera mounting systems as well as interfacing with the cameras. When that was unsuccessful, he pivoted to assisting with the ROS implementation. He also was responsible for compiling the report.<br/>
+	 Raghava worked on the ROS implementation and the convolution module as well as the overall algorithms.<br/>
+	 Tian worked on the the census transformation as well as everything verilog.</p>
       
       
     <div class="linklist"> <a name="references"></a>
@@ -171,6 +225,7 @@ An index of 0 means that the object is infinitely far away and an index of 1 mea
              
     <div class="linklist"> <a name="ack"></a>
       <h2>Acknowledgements &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	  <p>We would like to thank everyone who supported us in this project. The course staff, Tahmid, Manish, and Mohammad for their constant presense in lab and help. We would also like to thank Bruce for his support and encouragement throughout the project and the semester.</p>
     </div>
   </div> <!-- appendix -->
     
