@@ -185,7 +185,7 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
    <center><figcaption> Flow diagram of our project</figcaption></center>
 </figure>
 <h3> Relationship to IEEE, ISO, ANSI, DIN, or other standards</h3>
-	Our project relied on using the VGA standard for
+	<p>Our project relied on using the VGA standard as well as the ROS standard for publishing and subscribing between modules.</p>
         
   <div class="linklist" title=""> <a name="design"></a>
     <h2>Hardware Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
@@ -208,7 +208,7 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
    <center><figcaption> How the convolution module interfaced with the shift register</figcaption></center>
 </figure>
 <p> The shift registers gives us an NxN window of pixels to operate on (highlighted in red above). The following stages of processing are able to take advantage of this shift register architecture
-to allow for the high speed streaming of pixels. 
+to allow for the high speed streaming of pixels.</p> 
  <h2> Things that did not work </h2>
 <p> 
  We initially tried to stream stereo images from a camera module. This was met with several obstacles, ranging from noisy images to rectification and alignment.</p>
@@ -264,8 +264,8 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
     
     <h4>Ethical Considerations</h4>
    We believe our project followed the 
-    <h4>Legal Considerations</h4>
-  
+    <h4>IP Considerations</h4>
+  <p> We used the Altera IP for shift registers, FIFO, and dual clock RAM. We used the Xillybus IP as an evaluation. </p>
     
   </div> <!-- conclusion -->
 
