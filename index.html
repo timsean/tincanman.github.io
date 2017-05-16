@@ -68,6 +68,10 @@
   <br><br>
   <div id="intro">
     <h2>Introduction &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+<figure>
+   <img src="pics/full_setup.jpg" alt="Full setup" width = 700>
+   <figcaption>Demo of Stereo Vision</figcaption>
+   </figure>
     <p>
     A stereo camera is a camera that, through the use of two or more lenses, can capture three-dimensional images. 
 	Our project turns the FPGA into a device that is able to reduce the time it takes to generate stereo images from rectified image sources. We then integrated our system into a ROS node, which allows our hardware to be easily used by any ROS system. 
@@ -258,7 +262,7 @@ Our initial camera selection, OV7670 (TODO: link and image here), had to much st
 This noise presented itself by having noticeable flickering screen no matter the lighting conditions. 
 This kind of noise would have required a much more complicated memory interface to fix. We did a quick test with another Arducam, the MT9D111 module and noticed that there was much less flicker and decided to purchase a set of those.</p>
 <p>The mounting system was already designed and manufactured for the OV7670 and needed to be redone for the MT9D111 since the mounting was non-compatible with the previous modules. </p>
-    <img src="pics/Render.png">
+      <figure><img src="pics/Render.png" width = 700></figure>
 <p>Another issue with the MT9D111 was the difficulty of interpreting the datasheet and configuring the camera. 
 The camera was configured over i2c, which we used via smbus module on the Linux side of the FPGA. 
 We were able to debug the smbus module and eventually figured out how to configure the camera to the correct size. 
@@ -271,8 +275,8 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
 <p>We decided that due to our time constraints, to move to a system that accepted rectified images and expand on the ROS portion of the project.</p>
   
   <h2>Results:</h5>
- <p> Our system was very successful as a stereo image accelerator. We were able to achieve a 1 pixel per FPGA clock cycle processing rate which equates to 100 million pixels per seconds. The bottleneck of the system existed in the 200MBps Xillybus bandwidth for 
-  transmitting images over the HPS.</p>
+ <p> Our system was very successful as a stereo image accelerator. We were able to achieve a 1 pixel per FPGA clock cycle processing rate which equates to 100 million pixels per seconds for the possible 100 MHz clock rate of our design. The bottleneck of the system existed in the 200MBps Xillybus bandwidth for 
+  transmitting images over the HPS. In our demo, we tested with image sizes of 447 x 370.</p>
   <p> As for accuracy, our system was able to achieve ~85% accuracy compared to ideal images. Below shows the input images and the output of our system. 
   <figure>
    <img src="pics/dwarves.png" alt="Output of our Accelerator" width = 700>
@@ -291,7 +295,7 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
 <div class="linklist" title=""> <a name="conclusions"></a>
    
 	<h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-	<p> We were very pleased with the results of our project. Our accelerator was capable of streaming ~30-40fps at 1080p if given a stream of rectified images. We were able to meet our goal of generating stereo images
+	<p> We were very pleased with the results of our project. Our accelerator is capable of streaming ~30-40fps at 1080p if given a stream of rectified images. We were able to meet our goal of generating stereo images
 	at high speed while retaining a high accuracy. To improve on our accuracy, we could implement a median filter, LR consistency check, and increasing the census window size. We would also have liked to have been able to use 
 	our own camera's, but as discussed above, the time constraints forced our hand.<br/>
 	If we were to do this project again, we would abandon the idea of using our own cameras and work on what ended up being our final result sooner. This would have given us more time to implement some of the improvements talked about above.
@@ -300,7 +304,7 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
     
     
     <h4>Ethical Considerations</h4>
-   We believe our project followed the 
+   <p> We believe our project followed the ethical standards of Cornell University and general engineering practices. </p>
     <h4>IP Considerations</h4>
   <p> We used the Altera IP for shift registers, FIFO, and dual clock RAM. We used the Xillybus IP as an evaluation basis. Additionally, the MATLAB code used to initially design, test, and verify our stereo vision algorithms were based the code <a href="http://ai.stanford.edu/~mitul/cs223b/dp.html">here</a></p>
     
