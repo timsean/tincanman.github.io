@@ -189,8 +189,8 @@ the left and right images must be fed to the system in sync with each other in t
    <img src="pics/Full_Flow_Diagram.png" alt="Flow of our Algorithm" width = 700>
    <center><figcaption> Flow diagram of our project</figcaption></center>
 </figure>
-In order to communicate with the HPS, this streaming interface is connected to the read and write FIFOs of the Xillybus interface. The write FIFO (relative to the HPS) receives image data from the HPS, deserializes the data, and passes on the data into the stereo vision streaming interface. 
-The output of the streaming interface is then connected to the read FIFO (because it is read by the HPS) which connects back to the Xillybus. For demoeing purposes, we also multiplex the outputs from each stage of processing into a VGA buffer so we can display how the stereo vision algorithm works.
+<p>In order to communicate with the HPS, this streaming interface is connected to the read and write FIFOs of the Xillybus interface. The write FIFO (relative to the HPS) receives image data from the HPS, deserializes the data, and passes on the data into the stereo vision streaming interface. 
+The output of the streaming interface is then connected to the read FIFO (because it is read by the HPS) which connects back to the Xillybus. For demoeing purposes, we also multiplex the outputs from each stage of processing into a VGA buffer so we can display how the stereo vision algorithm works.</p>
 <h3> Relationship to IEEE, ISO, ANSI, DIN, or other standards</h3>
 	<p>Our project relied on using the VGA standard as well as the ROS standard for publishing and subscribing between modules.</p>
         
@@ -225,14 +225,15 @@ The output of the streaming interface is then connected to the read FIFO (becaus
    
     <h2>Hardware Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 	<h3> Convolution and Census Modules </h3>
-	<p> The basis of our software design relied on the streaming of pixels through our extensive pipelined hardware. In order to handle this streaming interface,
+	<p> The basis of our FPGA design relied on the streaming of pixels through our extensively pipelined hardware. In order to handle this streaming interface,
 	 a shift register architecture was developed and on each clock cycle, a pixel would be shifted in and a pixel would be shifted out. Below is a visualization of how this interface
-	 worked with the convolution module.</p>
+	 worked with the convolution module. For simplicity sake, we assume that each row of a "frame" is only 5 pixels wide. In reality, this is actually hundreds of pixels wide. </p>
 	<figure>
    	<img src="pics/Convolution_Flow.png" alt="Flow of the Convolution Module" width = 700>
    	<center><figcaption> How the convolution module interfaced with the shift register</figcaption></center>
 	</figure>
-	<p> The shift registers gives us an NxN window of pixels to operate on (highlighted in red above). The following stages of processing are able to take advantage of this shift register architectureto allow for the high speed streaming of pixels.
+	<p> The shift registers gives us an NxN window of pixels to operate on (in this case a 3x3 window highlighted in red above). This design allowed us to perform the convolution, census transform, and census windowing. As shown in the diagram, after the 0th pixel is at position 0, each new pixel that is shifted in essentially moves the window rightward through the image (and wrapping around to a new row of the image once the window falls of the rightside of the image). This gives us the sliding window of data that we can use to do all of the preprocessing that our algorithm needs. 
+	The actual implementation of the shift register involved using a shift register IP from Altera and a few registers. The data in the red box uses registers so that we can directly access the data. The rest of the data in each row uses the Altera shift register IP module, which is based on M10K blocks.
 	</p>
 	<h3> Correlation Module </h3>
 	<p> The correlation module worked by using 2 rows of shift registers to compare a bit vector from the right image with 64 other bit vectors in the left image. 
