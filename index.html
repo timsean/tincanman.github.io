@@ -200,9 +200,7 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
 </p>
    
      <h2>Software Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-   
-  <h2>Performance:</h5>
-  <h3> Things that did not work </h3>
+ <h2> Things that did not work </h2>
 <p> 
  We initially tried to stream stereo images from a camera module. This was met with several obstacles, ranging from noisy images to rectification and alignment.</p>
 <p>We decided to use an Arducam camera due to its theoretical simplicity ability to output raw RGB. 
@@ -221,7 +219,25 @@ Because we were unable to force the MT9D111 to lock to a fixed frame rate and be
 The solution to fix this will be either to use a FPGA with a large enough SRAM to store the full frames for both cameras, or use the SDRAM as a frame buffer for both cameras.</p>
 <p>In parallel to Arducam development, a camera with a stereo lens was lent to us by Bruce. This camera outputted a combined image from both lenses. This was not the ideal output since we wanted to have two distinct images, so after some experimenting, we determined how we could configure the camera to taking regular pictures with the stereo lense. This resulted in an single image which was split down the middle with the image through one lense on either side. We purchased a usb-ntsc cable and were able to get the camera to stream those images to the FPGA over ntsc. We then applied cropping functions on the input and separated the single image stream into two distinct streams. We then ran those images through our algorithms. We had hoped that this would result in a rectified image input to our modules, but the output of this was extremely noisy. </p>
 <p>We decided that due to our time constraints, to move to a system that accepted rectified images and expand on the ROS portion of the project.</p>
+  
+  <h2>Results:</h5>
+ <p> Our system was very successful as a stereo image accelerator. We were able to achieve a 1 pixel per FPGA clock cycle processing rate which equates to 100 million pixels per seconds. The bottleneck of the system existed in the 200MBps Xillybus bandwidth for 
+  transmitting images over the HPS.</p>
+  <p> As for accuracy, our system was able to achieve ~85% accuracy compared to ideal images. Below shows the input images and the output of our system. 
+  <figure>
+   <img src="pics/dwarves.png" alt="Output of our Accelerator" width = 700>
+   <center><figcaption> Flow diagram of our project</figcaption></center>
+</figure>
+<p>Here is the output of our system compared to the ideal output:</p>
+  <figure>
+   <img src="pics/exp_dolls.png" style = "float:left" alt="Output of our Accelerator" width = 300>
+   <img src="pics/ideal_dolls.png"  style = "float:right" alt="Output of our Accelerator" width = 300>
+   
+   </figure>
+   <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+   <p> It is clear that while our output is not ideal, we are able to identify the major elements of the ideal output. </p>
 
+  <br/>
 <h3> Safety</h3>
 <p> We made sure our project was safe by careful layout and testing. We made sure that we took breaks every couple of hours to avoid muscle fatigue. We also followed strict ESD protocols to avoid frying an FPGA.</p>
 <h3> Usability</h3>
@@ -229,12 +245,16 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
 <div class="linklist" title=""> <a name="conclusions"></a>
    
 	<h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-   
+	<p> We were very pleased with the results of our project. Our accelerator was capable of streaming ~30-40fps at 1080p if given a stream of rectified images. We were able to meet our goal of generating stereo images
+	at high speed while retaining a high accuracy. To improve on our accuracy, we could implement a median filter, LR consistency check, and increasing the census window size. We would also have liked to have been able to use 
+	our own camera's, but as discussed above, the time constraints forced our hand.<br/>
+	If we were to do this project again, we would abandon the idea of using our own cameras and work on what ended up being our final result sooner. This would have given us more time to implement some of the improvements talked about above.
+	</p>
     
     
     
     <h4>Ethical Considerations</h4>
-   
+   We believe our project followed the 
     <h4>Legal Considerations</h4>
   
     
