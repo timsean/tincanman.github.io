@@ -108,7 +108,7 @@ The input images first go through a convolutional filter. While our convolution 
 <h4>Census Windowing - </h4>As a method to improve the output quality and also be more robust to noise, we perform a 3x3 windowing the on the census output. The module simply concatenates the nine 8-bit vectors inside the window into a single 72-bit vector. The following diagram shows the process on a 2x2 window. 
 <!--[censuswnd.svg]-->
 <h4>Correlation - </h4>The correlation step take the windows census bit vectors from the left and right images and compares them to generate a disparity map. Our design can generate a depth map with 64 levels, so for each census vector in the right image, we compare it with 64 census vectors in the left image to find the level with the lowest difference between the two bit vectors. For each comparison, we XOR the two bit vectors and sum up the bits of the output vector (this is formally called the Hamming distance). If the XOR output for a certain bit is 1, then that means the bits are different between the left and right image, therefore the sum represents the amount of disparity between the two bit vectors. We then perform a tree comparison of the 64 disparity values to find the lowest disparity value. The index of of that value is the corresponding depth of that pixel in the original image. An index of 0 means that the object is infinitely far away and an index of 1 means that the object is very close. The following diagram shows the correlation process:
-<!--[correlate.svg]-->
+<!--[correlate.svg]--></p>
 
         
   <div class="linklist" title=""> <a name="design"></a>
