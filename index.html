@@ -200,6 +200,7 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
 </p>
    
      <h2>Software Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	<h3> Convolution and Census Modules </h3>
 	<p> The basis of our software design relied on the streaming of pixels through our extensive pipelined hardware. In order to handle this streaming interface,
 	 a shift register architecture was developed and on each clock cycle, a pixel would be shifted in and a pixel would be shifted out. Below is a visualization of how this interface
 	 worked with the convolution module.</p>
@@ -209,6 +210,17 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
 </figure>
 <p> The shift registers gives us an NxN window of pixels to operate on (highlighted in red above). The following stages of processing are able to take advantage of this shift register architecture
 to allow for the high speed streaming of pixels.</p> 
+	<h3> Correlation Module </h3>
+	<p> The correlation module worked by using 2 rows of shift registers to compare a bit vector from the right image with 64 other bit vectors in the left image. 
+	As discussed in the math section, the correlation module does the comparison by first XORing the bit vectors, then summing up the the bits from the XOR output to compute the disparity values, 
+	and finally extracting the index of the lowest disparity value. As shown in the diagram below, as new bit vectors are shifted in, a new depth value is computed at the output. 
+	This is directly connected to the streaming outputs of the left and right census window modules, and the outputs are fed to the HPS and VGA buffer. A comparator tree is used to find the lowest disparity value. 
+	To speed up the design, the comparator tree is pipelined at every depth of the tree, starting at the outputs of the summations. 
+	As a result, this module is capable of running at just over 100 MHz and will generate 1 depth pixel per cycle at full throughput.</p>
+	 <figure>
+   <img src="pics/corr_design.png" alt="Diagram of the correlation module" width = 700>
+   <center><figcaption> Correlation module flow diagram </figcaption></center>
+</figure>
  <h2> Things that did not work </h2>
 <p> 
  We initially tried to stream stereo images from a camera module. This was met with several obstacles, ranging from noisy images to rectification and alignment.</p>
