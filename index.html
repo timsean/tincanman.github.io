@@ -73,17 +73,13 @@
    <figcaption>Demo of Stereo Vision</figcaption>
    </figure>
     <p>
-    A stereo camera is a camera that, through the use of two or more lenses, can capture three-dimensional images. 
-	Our project turns the FPGA into a device that is able to reduce the time it takes to generate stereo images from rectified image sources. We then integrated our system into a ROS node, which allows our hardware to be easily used by any ROS system. 
+    A stereo camera is a camera that, through the use of two or more lenses, can capture three-dimensional scenes represented as depth maps. Our project turns the FPGA into a device that is able to reduce the time it takes to generate stereo images from rectified image sources. We then integrated our system into a ROS node, which allows our hardware to be easily used by any ROS system. 
 	</p>
 	<p>
-	Our node subscribes to rectified images and publishes stereo images. 
-	We process the input images by passing them through a convolution filter followed by a sparse census transform. 
-	We then pass the output of the census transform to a census windowing module. This procedure preprocesses the image which is then passed into the correspondence module to finally generate the stereo images. 
+	Our node subscribes to rectified images and publishes stereo images. We process the input images by passing them through a convolution filter followed by a sparse census transform. We then pass the output of the census transform to a census windowing module. This procedure preprocesses the image which is then passed into the correspondence module to finally generate the stereo images. 
 	</p>
 	<p>
-	We were successful in our project and implementing the stereo image computation algorithms. 
-	We were able to accelerate this process from a 1 minute and 30 second generation time to a few milliseconds on our hardware.
+	We were successful in our project and implementing the stereo image computation algorithms to generate usable depth maps. We were able to accelerate this process from a 1 minute generation time in MATLAB to a few milliseconds on our hardware depending on the frequency of the FPGA.
     </p>
   </div>
 
