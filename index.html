@@ -70,8 +70,7 @@
     <h2>Introduction &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
     <p>
     A stereo camera is a camera that, through the use of two or more lenses, can capture three-dimensional images. 
-	Our project turns the FPGA into a device that is able to reduce the time it takes to generate stereo images from rectified image sources. 
-	We then integrated our system into a ROS node, which allows our hardware to be easily used by any ROS system. 
+	Our project turns the FPGA into a device that is able to reduce the time it takes to generate stereo images from rectified image sources. We then integrated our system into a ROS node, which allows our hardware to be easily used by any ROS system. 
 	</p>
 	<p>
 	Our node subscribes to rectified images and publishes stereo images. 
@@ -81,7 +80,6 @@
 	<p>
 	We were successful in our project and implementing the stereo image computation algorithms. 
 	We were able to accelerate this process from a 1 minute and 30 second generation time to a few milliseconds on our hardware.
-
     </p>
   </div>
 
@@ -90,25 +88,28 @@
     <h3>Rationale and Inspiration:</h3>
     <p>
 	Stereo Cameras are expensive and an integral part of modern day robotics systems.
-	Since processing these images for generating disparity maps is computationally intensive, we felt that by using an FPGA to implement the image processing algorithms, 
-	we could achieve a much higher processing rate than conventional systems. 
+	Since processing these images for generating disparity maps is computationally intensive, we felt that by using an FPGA to implement the image processing algorithms, we could achieve a much higher processing rate than conventional systems. 
     </p>
 	<p>
-The inspiration for this project comes from our group’s real world experiences. 
-Our group has experience working with stereo and other camera technologies through research and internships and the high cost of these systems inspired us to make a computationally and cost efficient stereo image accelerator. 
-Since ROS is one of the most popular modelling software for robotics and automation, it made sense for us to extend our project into a ROS node.
-     </p>
+	The inspiration for this project comes from our group’s real world experiences. 
+	Our group has experience working with stereo and other camera technologies through research and internships and the high cost of these systems inspired us to make a computationally and cost efficient stereo image accelerator. Since ROS is one of the most popular modelling software for robotics and automation, it made sense for us to extend our project into a ROS node.
+    </p>
     <h3>Background Math</h3>
 	<h4> Concept</h4>
+	<p>
 	The rationale behind stereo vision relies on having an image of the same scene from different perspectives and by comparing those images, generating a disparity map.
+	</p>
+	<p>
 	In our case, we used rectified images from two cameras, where one of the cameras was horizontally shifted. As shown below, the process of stereo correspondance relies on comparing a pixel in one image 
-	and finding out that "pixels" location in the other image. 
+	and finding out that pixel's location in the other image. 
+	</p>
 	<figure>
    <img src="pics/Correlate.png" alt="Correlate" width = 700>
    <figcaption>Stereo Correlation</figcaption>
    </figure>
-	In order to succesfully correspond the pixels, the images go through a series of non-linear transformations in order to reduce noise and improve the output of the correspondance portion of the algorithm.
-	In this section, we will discuss how a rectified image pair is processed.
+   <p>
+	In order to succesfully correspond the pixels, the images go through a series of non-linear transformations in order to reduce noise and improve the output of the correspondance portion of the algorithm. In this section, we will discuss how a rectified image pair is processed.
+	</p>
    <figure>
    <img src="pics/original.png" alt="Input Image" width = 700>
    <figcaption>Input image the the algorithm will process</figcaption>
@@ -188,28 +189,45 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
 	<p>Our project relied on using the VGA standard as well as the ROS standard for publishing and subscribing between modules.</p>
         
   <div class="linklist" title=""> <a name="design"></a>
-    <h2>Hardware Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-	<h3> Robot Operating System: ROS </h3>
+    <h2>Software Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	<h3> Robot Operating System (ROS) </h3>
 	<p>
-	To get ROS running on the DE1-SoC, we first installed Xillinux on the HPS. 
-	Xillinux is a custom linux distribution based on Ubuntu 12.04 LTS for ARM. 
-	It is provided for free by Xillybus, and works out of the box on the Altera SoCKit board. 
-	To get this running on our board (DE1-SoC), we had to make a few modifications in the Quartus project, generate a .rbf (Raw Binary File) in Quartus, and add this to the SD card image. 
-	Mohammad, who had worked with Xillybus before, helped us with this process. 
+	To get ROS running on the DE1-SoC, we first installed Xillinux on the HPS. Xillinux is a custom linux distribution based on Ubuntu 12.04 LTS for ARM. It is provided for free by Xillybus, and works out of the box on the Altera SoCKit board. 
+	To get this running on our board (DE1-SoC), we had to make a few modifications in the Quartus project, generate a .rbf (Raw Binary File) in Quartus, and add this to the SD card image. Mohammad, who had worked with Xillybus before, helped us with this process. 
 	The template project he provided enabled us to get the system up and running quickly, so we could focus on integrating our system with the Xillybus.
-</p>
+	</p>
+	<p>
+	Once we had Xillinux running, the first step was to install ROS on the board. This was relatively straightforward, as the ROS wiki already had a guide for installing ROS on Ubuntu for ARM. However, as this was an old version of Ubuntu (12.04), we had to install an old version of ROS that was compatiable with this (ROS Groovy). To facilitate development, I created a catkin workspace on the drive, and created a ROS package to contain our code. This package contains our source code as well as .launch files to get our code running.
+	</p>
+	<p>
+	The ROS node was fairly simple. It subscribed to messages published under the '/camera/image' topic, and published messages to the 'stereo/image' topic. In the message receive callback, our node would write the input image to the Xillybus device driver file ('/dev/xillbus_write_32') and read back the stereo image from the other device driver file ('/dev/xillbus_read_32'). The Xillybus IP handled internal DMA transfers required to communicate from the device driver files to the FIFOs on the FPGA.
+	</p>
+
+	<figure>
+	   <img src="pics/rosgraph.png" alt="Flow of our Algorithm" width = 700>
+	   <center><figcaption>RQT showing the connections between ROS nodes</figcaption></center>
+	</figure>
+
+	<p>
+	To test our node and visualize everything that was going on in the system, we installed an Ubuntu virtual machine on one of the lab computers, and got ROS running on that as well. Then, we connected the DE1-SoC to this computer's network, so that ROS nodes running on either machine can communicate between each other. We created a simple image publisher node that reads from a file and publishes rectified images at a steady rate, and launched the node running on our board. These images were taken from the 2005 Middlebury Vision dataset. Lastly, we launched RViz to visualize both the input and output images. The following screenshots show this.
+	</p>
+
+	<figure>
+	   <img src="pics/rviz.png" alt="RViz" width = 700>
+	   <center><figcaption>RViz visualizing the rectified image pair</figcaption></center>
+	</figure>
    
-     <h2>Software Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+    <h2>Hardware Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 	<h3> Convolution and Census Modules </h3>
 	<p> The basis of our software design relied on the streaming of pixels through our extensive pipelined hardware. In order to handle this streaming interface,
 	 a shift register architecture was developed and on each clock cycle, a pixel would be shifted in and a pixel would be shifted out. Below is a visualization of how this interface
 	 worked with the convolution module.</p>
-	 <figure>
-   <img src="pics/Convolution_Flow.png" alt="Flow of the Convolution Module" width = 700>
-   <center><figcaption> How the convolution module interfaced with the shift register</figcaption></center>
-</figure>
-<p> The shift registers gives us an NxN window of pixels to operate on (highlighted in red above). The following stages of processing are able to take advantage of this shift register architecture
-to allow for the high speed streaming of pixels.</p> 
+	<figure>
+   	<img src="pics/Convolution_Flow.png" alt="Flow of the Convolution Module" width = 700>
+   	<center><figcaption> How the convolution module interfaced with the shift register</figcaption></center>
+	</figure>
+	<p> The shift registers gives us an NxN window of pixels to operate on (highlighted in red above). The following stages of processing are able to take advantage of this shift register architectureto allow for the high speed streaming of pixels.
+	</p>
 	<h3> Correlation Module </h3>
 	<p> The correlation module worked by using 2 rows of shift registers to compare a bit vector from the right image with 64 other bit vectors in the left image. 
 	As discussed in the math section, the correlation module does the comparison by first XORing the bit vectors, then summing up the the bits from the XOR output to compute the disparity values, 
@@ -284,15 +302,44 @@ The solution to fix this will be either to use a FPGA with a large enough SRAM t
   <div class="linklist" title=""> <a name="appendices"></a>
     <h2>Appendices &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 	<p> The group approves this report for inclusion on the course website.<br/>
-The group approves the video for inclusion on the course youtube channel.
-</p>
+	The group approves the video for inclusion on the course youtube channel.
+	</p>
     <h3>A. Code Listing</h3>
+
+    <p>
+    Our source verilog, MATLAB, and python scripts used to develop the FPGA architecture are available on Github <a href="https://github.coecis.cornell.edu/rk534/stereo-cam-src">here</a>.<br/>
+    Our source C++ and .launch files for ROS are available on Github <a href="https://github.coecis.cornell.edu/rk534/stereo_cam_node">here</a>.
+    </p>
     
   
     <h3>B. Distribution of work:</h3>
-     <p> Jay worked on designing and manufacturing the camera mounting systems as well as interfacing with the cameras. When that was unsuccessful, he pivoted to assisting with the ROS implementation. He also was responsible for compiling the report.<br/>
-	 Raghava worked on the ROS implementation and the convolution module as well as the overall algorithms.<br/>
-	 Tian worked on the the census transformation as well as everything verilog.</p>
+	<ul>
+	<li>Jay worked on designing and manufacturing the camera mounting systems as well as interfacing with the cameras. When that was unsuccessful, he pivoted to assisting with the ROS implementation. He also was responsible for compiling the report.</li>
+	<li>Raghava worked on the ROS implementation, the convolution module as well as the overall algorithm design.</li>
+	<li>Tian worked on the the census transformation as well as everything verilog.</li>
+	</ul>
+
+	<h3>C. References:</h3>
+	General resources:
+	<ul>
+	<li><a href="http://embeddedprogrammer.blogspot.com/2012/07/hacking-ov7670-camera-module-sccb-cheat.html">OV7670 Tutorial</a></li>
+	<li><a href="http://www.eleparts.co.kr/data/design/product_file/Board/OV7670_CMOS.pdf">OV7670 Datasheet</a></li>
+	<li><a href="http://xillybus.com/">Xillybus</a></li>
+	<li><a href="hhttp://www.arducam.com/camera-modules/0-3mp-ov7670/">OV7670 Description</a></li>
+	<li><a href="http://www.arducam.com/camera-modules/2mp-mt9d111/">MT9D111 Description</a></li>
+	<li><a href="http://ai.stanford.edu/~mitul/cs223b/dp.html">MATLAB Script Inspiration</a></li>
+	<li>Mohammad Saifee Dohadwala, for helping with Xillibus and Xillinux installations.</li>
+	</ul>
+
+	Research papers:
+	<ul>
+	<li><a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=5159427">Census on Virtex-4</a></li>
+	<li><a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6524561">Modified Census on Spartan</a></li>
+	<li><a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6524561">Census on Cyclone II</a></li>
+	<li><a href="http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6213095">Sparse and Generalized Census</a></li>
+	<li><a href="https://pdfs.semanticscholar.org/2d7a/5bfc0e15a27034d78106abad6da97cb40205.pdf">Median Filtering Comparison</a></li>
+	</ul>
+
       
       
     <div class="linklist"> <a name="references"></a>
@@ -309,7 +356,7 @@ The group approves the video for inclusion on the course youtube channel.
   <div id="footerwrap">
     <div id="footer">
       <div id="copyright">
-        <div class="copyright">©2016 Jay Fetter, Tian Yao, Raghava Kumar</div>
+        <div class="copyright">©2017 Jay Fetter, Tian Yao, Raghava Kumar</div>
         <div class="copyright">Layout ©2010 Cornell University</div>
       </div>
     </div>
