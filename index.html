@@ -99,16 +99,38 @@ Our group has experience working with stereo and other camera technologies throu
 Since ROS is one of the most popular modelling software for robotics and automation, it made sense for us to extend our project into a ROS node.
      </p>
     <h3>Background Math</h3>
-   <p>The stereo algorithm works by combining the filtering and processing algorithms listed below into a single pipeline.<br/>
+   <p>The stereo algorithm works by combining the filtering and processing algorithms listed below into a single pipeline.<br/></p>
 <h4>Convolutional Filter -</h4> <br/>
-The input images first go through a convolutional filter. While our convolution module can use any kernel of any size, we chose to implement a 3x3 Gaussian blur filter due to its simplicity and good results. This helped to reduce any random noise in the images while preserving the edge structures which is needed for a reliable census transform (discussed in ii). We also tested an averaging filter and bilateral filter in MATLAB. In comparison, the simple averaging filter gave worse results due to poor noise filtering and the bilateral filter gave slightly better results due to its ability to preserve sharper edges. The time we would have to spend on developing the bilateral filter did not justify its minor benefits for our project, so we chose to use the Gaussian blur filter. In our Verilog design, the convolutional filter expects an 8-bit unsigned number for the image pixel input and a 4.4 signed fixed point decimal for the kernel input (this gave a range of -8 to 7.9375 for the kernel values with a precision of 0.0625). The output of the filter is strictly an 8-bit unsigned value. If the convolution at a certain location produces a negative value, that value is clipped to 0. The Gaussian blur filter uses the following kernel weights:
+<p>The input images first go through a convolutional filter. 
+While our convolution module can use any kernel of any size, we chose to implement a 3x3 Gaussian blur filter due to its simplicity and good results.
+ This helped to reduce any random noise in the images while preserving the edge structures which is needed for a reliable census transform (discussed in ii). 
+ We also tested an averaging filter and bilateral filter in MATLAB. In comparison, the simple averaging filter gave worse results due to poor noise filtering and the bilateral filter gave slightly better results due to its ability to preserve sharper edges. The time we would have to spend on developing the bilateral filter did not justify its minor benefits for our project, so we chose to use the Gaussian blur filter. In our Verilog design, the convolutional filter expects an 8-bit unsigned number for the image pixel input and a 4.4 signed fixed point decimal for the kernel input (this gave a range of -8 to 7.9375 for the kernel values with a precision of 0.0625). The output of the filter is strictly an 8-bit unsigned value. If the convolution at a certain location produces a negative value, that value is clipped to 0. 
+The Gaussian blur filter uses the following kernel weights:</p>
 <!--[convolvekernel.svg]-->
-<h4>Sparse Census Transform -</h4> After the images are prefiltered, they are processed by a sparse census transform. The census transform works by comparing a pixel’s surrounding neighbor pixels to itself in intensity. If a neighbor pixel is less in intensity, then a 1 is outputted, otherwise, a 0 is outputted. The sparse census transform works by using a larger window size so that the comparisons are done on further away pixels instead of immediately adjacent pixels. This boosts the robustness of the algorithm to noise. The algorithm is proposed by the paper here [http://ieeexplore.ieee.org/document/6213095/]. The following diagram represents the flow of the census transform. The transform is performed on a 5x5 window of pixels and the output is represented as a bit vector. The * represents pixels that we do not care about because we only perform the comparisons on the outer pixels. The center pixel is discarded because the output is always 0. 
+<h4>Sparse Census Transform -</h4> 
+	<p>
+	After the images are prefiltered, they are processed by a sparse census transform. 
+	The census transform works by comparing a pixel’s surrounding neighbor pixels to itself in intensity. 
+	If a neighbor pixel is less in intensity, then a 1 is outputted, otherwise, a 0 is outputted. 
+	The sparse census transform works by using a larger window size so that the comparisons are done on further away pixels instead of immediately adjacent pixels.
+	This boosts the robustness of the algorithm to noise. The algorithm is proposed by the paper here [http://ieeexplore.ieee.org/document/6213095/].
+	 The following diagram represents the flow of the census transform.
+	 The transform is performed on a 5x5 window of pixels and the output is represented as a bit vector. 
+	 The * represents pixels that we do not care about because we only perform the comparisons on the outer pixels. The center pixel is discarded because the output is always 0. 
+ </p>
 <!--[census.svg]-->
-<h4>Census Windowing - </h4>As a method to improve the output quality and also be more robust to noise, we perform a 3x3 windowing the on the census output. The module simply concatenates the nine 8-bit vectors inside the window into a single 72-bit vector. The following diagram shows the process on a 2x2 window. 
+<h4>Census Windowing - </h4>
+<p>As a method to improve the output quality and also be more robust to noise, we perform a 3x3 windowing the on the census output. 
+The module simply concatenates the nine 8-bit vectors inside the window into a single 72-bit vector. The following diagram shows the process on a 2x2 window. </p>
 <!--[censuswnd.svg]-->
-<h4>Correlation - </h4>The correlation step take the windows census bit vectors from the left and right images and compares them to generate a disparity map. Our design can generate a depth map with 64 levels, so for each census vector in the right image, we compare it with 64 census vectors in the left image to find the level with the lowest difference between the two bit vectors. For each comparison, we XOR the two bit vectors and sum up the bits of the output vector (this is formally called the Hamming distance). If the XOR output for a certain bit is 1, then that means the bits are different between the left and right image, therefore the sum represents the amount of disparity between the two bit vectors. We then perform a tree comparison of the 64 disparity values to find the lowest disparity value. The index of of that value is the corresponding depth of that pixel in the original image. An index of 0 means that the object is infinitely far away and an index of 1 means that the object is very close. The following diagram shows the correlation process:
-<!--[correlate.svg]--></p>
+<h4>Correlation - </h4>
+<p>The correlation step take the windows census bit vectors from the left and right images and compares them to generate a disparity map. 
+Our design can generate a depth map with 64 levels, so for each census vector in the right image, we compare it with 64 census vectors in the left image to find the level with the lowest difference between the two bit vectors. 
+For each comparison, we XOR the two bit vectors and sum up the bits of the output vector (this is formally called the Hamming distance). 
+If the XOR output for a certain bit is 1, then that means the bits are different between the left and right image, therefore the sum represents the amount of disparity between the two bit vectors. 
+We then perform a tree comparison of the 64 disparity values to find the lowest disparity value. The index of of that value is the corresponding depth of that pixel in the original image. 
+An index of 0 means that the object is infinitely far away and an index of 1 means that the object is very close. The following diagram shows the correlation process:</p>
+<!--[correlate.svg]-->
 
         
   <div class="linklist" title=""> <a name="design"></a>
