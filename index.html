@@ -99,6 +99,10 @@ Our group has experience working with stereo and other camera technologies throu
 Since ROS is one of the most popular modelling software for robotics and automation, it made sense for us to extend our project into a ROS node.
      </p>
     <h3>Background Math</h3>
+   <figure>
+   <img src="pics/original.png" alt="Input Image" width = 700>
+   <figcaption>Input image the the algorithm will process</figcaption>
+   </figure>
    <p>The stereo algorithm works by combining the filtering and processing algorithms listed below into a single pipeline.<br/></p>
 <h4>Convolutional Filter -</h4>
 <p>The input images first go through a convolutional filter. 
@@ -107,7 +111,11 @@ While our convolution module can use any kernel of any size, we chose to impleme
  We also tested an averaging filter and bilateral filter in MATLAB. In comparison, the simple averaging filter gave worse results due to poor noise filtering and the bilateral filter gave slightly better results due to its ability to preserve sharper edges. The time we would have to spend on developing the bilateral filter did not justify its minor benefits for our project, so we chose to use the Gaussian blur filter. In our Verilog design, the convolutional filter expects an 8-bit unsigned number for the image pixel input and a 4.4 signed fixed point decimal for the kernel input (this gave a range of -8 to 7.9375 for the kernel values with a precision of 0.0625). The output of the filter is strictly an 8-bit unsigned value. If the convolution at a certain location produces a negative value, that value is clipped to 0. 
 The Gaussian blur filter uses the following kernel weights:</p>
 <figure>
-   <img src="pics/convolvekernel.svg" alt="Flow of our Algorithm" width = 700>
+   <img src="pics/convolvekernel.svg" alt="Flow of our Algorithm" width = 350>
+   </figure>
+<figure>
+   <img src="pics/gaussian.png" alt="Guassian blur Image" width = 700>
+   <figcaption>Output of Gaussian blur filter</figcaption>
    </figure>
 <!--[convolvekernel.svg]-->
 <h4>Sparse Census Transform -</h4> 
@@ -123,6 +131,10 @@ The Gaussian blur filter uses the following kernel weights:</p>
  </p>
  <figure>
    <img src="pics/census.svg" alt="Census" width = 700>
+   </figure>
+<figure>
+   <img src="pics/census.png" alt="Guassian blur Image" width = 700>
+   <figcaption>Output of sparse census transform. The bit vectors are simply represented as a number and outputted as pixel intensity for visualization purposes.</figcaption>
    </figure>
 <!--[census.svg]-->
 <h4>Census Windowing - </h4>
@@ -142,6 +154,19 @@ An index of 0 means that the object is infinitely far away and an index of 1 mea
 <!--[correlate.svg]-->
 <figure>
    <img src="pics/correlate.svg" alt="Correlate" width = 700>
+   </figure>
+<figure>
+   <img src="pics/disparity_nofilt.png" alt="Disparity map output" width = 450>
+   <figcaption>Output of the correlation algorithm.</figcaption>
+   </figure>
+<h4>Post Filtering (not implemented) - </h4>
+<p>Our system also supports a post filter, but it was not implemented due to time limitations and hardware limitations. 
+In our MATLAB model, we tested a median filter that gave good results in cleaning up the salt and pepper noise spikes from the correlation output. 
+After we added in the VGA module for demoing purposes, our full design utilized 94% of the logic units on the FPGA. We will not have been able to fit a median filter module onto the FPGA. 
+Without the VGA module, the FPGA can accommodate a post filter that connects to the correlation module output.</p>
+<figure>
+   <img src="pics/disparity_nofilt.png" alt="Median filter output" width = 450>
+   <figcaption>Output of the median filter.</figcaption>
    </figure>
 <h3> Logical Flow</h3>
 <p>Our project had the following logical flow:</p>
