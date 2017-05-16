@@ -200,6 +200,15 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
 </p>
    
      <h2>Software Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+	<p> The basis of our software design relied on the streaming of pixels through our extensive pipelined hardware. In order to handle this streaming interface,
+	 a shift register architecture was developed and on each clock cycle, a pixel would be shifted in and a pixel would be shifted out. Below is a visualization of how this interface
+	 worked with the convolution module.</p>
+	 <figure>
+   <img src="pics/Convolution_Flow.png" alt="Flow of the Convolution Module" width = 700>
+   <center><figcaption> How the convolution module interfaced with the shift register</figcaption></center>
+</figure>
+<p> The shift registers gives us an NxN window of pixels to operate on (highlighted in red above). The following stages of processing are able to take advantage of this shift register architecture
+to allow for the high speed streaming of pixels. 
  <h2> Things that did not work </h2>
 <p> 
  We initially tried to stream stereo images from a camera module. This was met with several obstacles, ranging from noisy images to rectification and alignment.</p>
