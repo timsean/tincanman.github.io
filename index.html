@@ -180,11 +180,17 @@ Without the VGA module, the FPGA can accommodate a post filter that connects to 
    <figcaption>Output of the median filter.</figcaption>
    </figure>
 <h3> Logical Flow</h3>
-<p>Our project had the following logical flow:</p>
+<p>All of the verilog modules for generating the stereo depth map are connected together using a streaming interface. As part of the interface, each module will take as inputs the X and Y coordinates of the incoming data, 
+the incoming data (whether it be pixel values or census bit vectors), and a input data valid signal. Therefore as outputs, to follow the same standard, the modules will give X and Y coordinates of the output data, the output data, and an output valid signal. 
+This design allows us to easily test each modules individually and then connect them up without having to worry about any cycle level synchronization issues. As shown in the diagram below, the implemented algorithm on the FPGA involves a convolve module, 
+sparse census transform module, and census windowing module for each of the left and right images. Finally a correlation module take the census data from left and right image to give a single depth map data as the output. One caveat to this design is that 
+the left and right images must be fed to the system in sync with each other in terms of pixel locations. This is ultimately because of the correlation module requiring the pixels to be aligned for the algorithm to work. </p>
 <figure>
    <img src="pics/Full_Flow_Diagram.png" alt="Flow of our Algorithm" width = 700>
    <center><figcaption> Flow diagram of our project</figcaption></center>
 </figure>
+In order to communicate with the HPS, this streaming interface is connected to the read and write FIFOs of the Xillybus interface. The write FIFO (relative to the HPS) receives image data from the HPS, deserializes the data, and passes on the data into the stereo vision streaming interface. 
+The output of the streaming interface is then connected to the read FIFO (because it is read by the HPS) which connects back to the Xillybus. For demoeing purposes, we also multiplex the outputs from each stage of processing into a VGA buffer so we can display how the stereo vision algorithm works.
 <h3> Relationship to IEEE, ISO, ANSI, DIN, or other standards</h3>
 	<p>Our project relied on using the VGA standard as well as the ROS standard for publishing and subscribing between modules.</p>
         
