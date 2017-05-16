@@ -99,6 +99,16 @@ Our group has experience working with stereo and other camera technologies throu
 Since ROS is one of the most popular modelling software for robotics and automation, it made sense for us to extend our project into a ROS node.
      </p>
     <h3>Background Math</h3>
+	<h4> Concept</h4>
+	The rationale behind stereo vision relies on having an image of the same scene from different perspectives and by comparing those images, generating a disparity map.
+	In our case, we used rectified images from two cameras, where one of the cameras was horizontally shifted. As shown below, the process of stereo correspondance relies on comparing a pixel in one image 
+	and finding out that "pixels" location in the other image. 
+	<figure>
+   <img src="pics/Correlate.png" alt="Correlate" width = 700>
+   <figcaption>Stereo Correlation</figcaption>
+   </figure>
+	In order to succesfully correspond the pixels, the images go through a series of non-linear transformations in order to reduce noise and improve the output of the correspondance portion of the algorithm.
+	In this section, we will discuss how a rectified image pair is processed.
    <figure>
    <img src="pics/original.png" alt="Input Image" width = 700>
    <figcaption>Input image the the algorithm will process</figcaption>
