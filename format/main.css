@@ -158,3 +158,10 @@
 	border: none;
 	text-decoration: none;
 }
+
+figcaption {
+  font-size: 12px;
+  background: transparent;
+  word-wrap:normal;
+  text-align: center;
+}
