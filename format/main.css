@@ -165,3 +165,7 @@ figcaption {
   word-wrap:normal;
   text-align: center;
 }
+
+figure {
+	text-align: center;
+}
